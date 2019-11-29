@@ -1,2 +1,2 @@
 # ELF-Parser
-elfp: An ELF Parsing Library
+libelfp: An ELF Parsing Library
