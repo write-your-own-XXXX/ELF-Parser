@@ -26,6 +26,12 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <elf.h>
+#include <sys/mman.h>
 
 /*
  * All definitions related to elfp_free_addr_vector structure.
@@ -122,4 +128,292 @@ elfp_free_addr_vector_add(elfp_free_addr_vector *vec, void *addr)
 
 	/* Good to go! */
 	return 0;
+}
+
+/*
+ * All definitions related to elfp_main structure.
+ *
+ * Refer elfp_int.h for structure definition and functions' description.
+ */
+
+elfp_main*
+elfp_main_create(const char *file_path)
+{
+	/* Basic check */
+	if(file_path == NULL)
+	{
+		elfp_err_warn("elfp_main_create", "NULL argument passed");
+		return NULL;
+	}
+
+	int ret;
+	elfp_main *main = NULL;
+	struct stat st;
+	unsigned char magic[4] = {'\0', '\0', '\0', '\0'};
+	void *start_addr = NULL;
+
+	/* Allocate memory */
+	main = calloc(1, sizeof(elfp_main));
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_main_create", "calloc() failed");
+		return NULL;
+	}
+
+	/* All the elfp_main's members are 0 now.
+	 * We'll start filling them one by one */
+
+	/*
+	 * 1. File descriptor 
+	 */
+	
+	/* Check if we can read the file or not */
+	ret = access(file_path, R_OK);
+	if(ret == -1)
+	{
+		elfp_err_warn("elfp_main_create", "access() failed");
+		elfp_err_warn("elfp_main_create", "File doesn't exist / No read permissions");
+		goto return_free;
+	}
+
+	/* Open the file */
+	ret = open(file_path, O_RDONLY);
+	if(ret == -1)
+	{
+		elfp_err_warn("elfp_main_create", "open() failed");
+		goto return_free;
+	}
+	/* Update the file descriptor */
+	main->fd = ret;
+
+	/*
+	 * 2. Check if the file is ELF or not.
+	 */
+	ret = read(main->fd, magic, 4);
+	if(ret != 4)
+	{
+		elfp_err_warn("elfp_main_create", "read() failed");
+		goto return_close;
+	}
+
+	if(strcmp(magic, ELFMAG) != 0)
+	{
+		elfp_err_warn("elfp_main_create", 
+		"Not an ELF file according to the magic characters");
+		goto return_close;
+	}
+	
+	/* Now that we know that it IS an ELF file, let us continue
+	 * populating */
+
+	/*
+	 * 3. File size
+	 */
+	ret = fstat(main->fd, &st);
+	if(ret == -1)
+	{
+		elfp_err_warn("elfp_main_create", "fstat() failed");
+		goto return_close;
+	}
+	/* Update size */
+	main->file_size = st.st_size;
+
+	/*
+	 * 4. Update path
+	 */
+	strncpy(main->path, file_path, ELFP_FILEPATH_SIZE);
+
+	/*
+	 * 5. Update start address
+	 */
+	start_addr = mmap(NULL, main->file_size, PROT_READ, MAP_PRIVATE,
+					main->fd, 0);
+	if(start_addr == MAP_FAILED)
+	{
+		elfp_err_warn("elfp_main_create", "mmap() failed");
+		goto return_close;
+	}
+	main->start_addr = (unsigned char *)start_addr;
+
+	/* 
+	 * 6. Initialize the free list *
+	 */
+	ret = elfp_free_addr_vector_init(&main->free_vec);
+	if(ret != 0)
+	{
+		elfp_err_warn("elfp_main_create",
+				"elfp_free_addr_vector_init() failed");
+
+		goto return_munmap;
+	}
+
+	/* At this point, all members except 'handle' are populated.
+	 *
+	 * 'handle' is a member which a create() function cannot decide.
+	 * It needs to be given by one of main_vec's functions.
+	 *
+	 * So, we are done here */
+	
+	return main;
+		
+
+return_munmap:
+	munmap(main->start_addr, main->file_size);
+
+return_close:
+	close(main->fd);
+
+return_free:
+	free(main);
+	return NULL;
+}
+
+int
+elfp_main_update_handle(elfp_main *main, int handle)
+{
+	if(main == NULL || handle < 0)
+	{
+		elfp_err_warn("elfp_main_update_handle", "Invalid argument(s) passed");
+		return -1;
+	}
+
+	main->handle = handle;
+
+	return 0;
+}
+
+int
+elfp_main_fini(elfp_main *main)
+{
+	/* Basic check */
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_main_fini", "NULL argument passed");
+		return -1;
+	}
+	
+	/* First, inform main_vec about this de-init */
+	 elfp_main_vec_inform(main->handle);
+
+	/* unmap the file */
+	munmap(main->start_addr, main->file_size);
+
+	/* Close the file */
+	close(main->fd);
+
+	/* De-init the free vector */
+	elfp_free_addr_vector_fini(&main->free_vec);
+
+	/* Now that we have cleaned up everything inside the object,
+	 * it is time to clean the object itself */
+	free(main);
+
+	/* All the above functions can present a runtime error.
+	 * But they are ignored because nothing can be done to
+	 * handle them properly. Best way is to leave it and let
+	 * OS take care of it */
+	
+	return 0;
+}
+
+
+
+/*
+ * All definitions related to elfp_main_vector(main_vec) are present below.
+ *
+ * Refer elfp_int.h for declarations and description.
+ */
+
+elfp_main_vector main_vec;
+
+int
+elfp_main_vec_init()
+{
+	
+	/* Update initial size */
+	main_vec.total = ELFP_MAIN_VECTOR_INIT_SIZE;
+
+	/* Allocate memory */
+	main_vec.vec = calloc(main_vec.total, sizeof(elfp_main *));
+	if(main_vec.vec == NULL)
+	{
+		elfp_err_warn("elfp_main_vec_init", "calloc() failed");
+		elfp_err_warn("elfp_main_vec_init", "Fatal Error. Library cannot be used");
+		return -1;
+	}
+	
+	/* Initially, there is nothing */
+	main_vec.latest = 0;
+
+	return 0;
+}
+
+int
+elfp_main_vec_add(elfp_main *main)
+{
+	/* Basic check */
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_main_vec_add", "NULL argument passed");
+		return -1;
+	}
+
+	void *new_addr = NULL;
+	int handle;
+
+	/* Check if the vector is full */
+	if(main_vec.latest == main_vec.total)
+	{
+		/* Allocate more memory */
+		new_addr = realloc(main_vec.vec, 
+			(main_vec.total + ELFP_MAIN_VECTOR_INIT_SIZE) * sizeof(elfp_main *));
+
+		if(new_addr == NULL)
+		{
+			elfp_err_warn("elfp_main_vec_add", "realloc() failed");
+			return -1;
+		}
+
+		/* Zeroize the new memory */
+		memset(((char *)new_addr) + main_vec.total * sizeof(elfp_main *), '\0',
+				ELFP_MAIN_VECTOR_INIT_SIZE * sizeof(elfp_main *));
+		
+		/* All set, change the members */
+		main_vec.total = main_vec.total + ELFP_MAIN_VECTOR_INIT_SIZE;
+		main_vec.vec = new_addr;
+	}
+
+	/* Add it */
+	main_vec.vec[main_vec.latest] = main;
+	handle = main_vec.latest;
+
+	/* Then update it */
+	main_vec.latest = main_vec.latest + 1;
+	
+	/* All good, we got the handle */
+	return handle;
+}
+
+void
+elfp_main_vec_fini()
+{
+	unsigned long int i;
+	
+	/* Iterate through the vector and free all the active objects */
+	for(i = 0; i < main_vec.latest; i++)
+	{
+		if(main_vec.vec[i] != NULL)
+			elfp_main_fini(main_vec.vec[i]);
+	}
+
+	/* Free up the vector itself */
+	free(main_vec.vec);
+	
+	return;
+}
+
+void
+elfp_main_vec_inform(int handle)
+{
+	main_vec.vec[handle] = NULL;
 }

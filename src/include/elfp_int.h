@@ -110,6 +110,38 @@ typedef struct elfp_main
 		
 } elfp_main;
 
+/*
+ * elfp_main_create: Creates a new elfp_main object and returns a
+ * 	reference to it.
+ *
+ * @arg0: File path - A NULL terminated string.
+ *
+ * @return: NULL on failure, Reference to an empty elfp_main object on success.
+ */
+elfp_main*
+elfp_main_create(const char *file_path);
+
+/*
+ * elfp_main_update_handle: Updates 'handle' of elfp_main object.
+ *
+ * @arg0: Reference to an elfp_main object.
+ * @arg1: An integer.
+ * 	* This MUST be a return value of elfp_main_vector_add().
+ *
+ * @return: 0 on success, -1 on failure.
+ */
+int
+elfp_main_update_handle(elfp_main *main, int handle);
+
+/*
+ * elfp_main_fini: Cleans up everything related to a given elfp_main object.
+ *
+ * @arg0: Reference to an elfp_main object
+ *
+ * @return: 0 on success, -1 on failure.
+ */
+int
+elfp_main_fini(elfp_main *main);
 
 
 /******************************************************************************
@@ -134,5 +166,43 @@ typedef struct elfp_vector_main
 	unsigned long int latest;
 
 } elfp_main_vector;
+
+extern elfp_main_vector main_vec;
+
+/*
+ * elfp_main_vec_init: Initializes main_vec structure
+ *
+ * @return: 0 on success, -1 on failure.
+ */
+int
+elfp_main_vec_init();
+
+/*
+ * elfp_main_vec_add: Adds an elfp_main reference to main_vec.
+ *
+ * @arg0: Reference to an elfp_main structure.
+ *
+ * @return: handle(a non-positive integer) on success,
+ * 		-1 on failure.
+ */
+int
+elfp_main_vec_add(elfp_main *main);
+
+/*
+ * elfp_main_vec_fini: Cleans up the main_vec.
+ *	Should be called only if the library is about to be de-inited.
+ */
+void
+elfp_main_vec_fini();
+
+/*
+ * elfp_main_vec_inform: Informs main_vec about de-initing of a 
+ * 	elfp_main object.
+ *
+ * @arg0: Handle to that elfp_main object.
+ */
+void
+elfp_main_vec_inform(int handle);
+
 
 #endif /* _ELFP_INT_H */
