@@ -109,7 +109,7 @@ elfp_free_addr_vector_add(elfp_free_addr_vector *vec, void *addr)
 		}
 		
 		/* Initialize the new memory */
-		memset(((char *)new_addr) + vec->total, '\0', 
+		memset(((char *)new_addr) + vec->total * sizeof(void *), '\0', 
 				ELFP_FREE_ADDR_VECTOR_INIT_SIZE * sizeof(void *));
 
 		vec->addrs = new_addr;
