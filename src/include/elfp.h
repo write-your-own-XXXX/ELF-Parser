@@ -28,8 +28,10 @@
 /*
  * elfp_init: Initializes the library. 
  *      * MUST be called before any other library functions are called.
+ *
+ * @return: 0 on success, -1 on failure.
  */
-void
+int
 elfp_init();
 
 
@@ -56,6 +58,8 @@ elfp_open(const char *elfp_elf_path);
  * elfp_close: Closes everything about the specified handle.
  *
  * @arg0: User handle obtained from an elfp_open call.
+ *
+ * @return: 0 on success, -1 on failure.
  */
 int
 elfp_close(int user_handle);

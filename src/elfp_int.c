@@ -292,8 +292,7 @@ elfp_main_fini(elfp_main *main)
 		return -1;
 	}
 	
-	/* First, inform main_vec about this de-init */
-	 elfp_main_vec_inform(main->handle);
+	int handle = main->handle;
 
 	/* unmap the file */
 	munmap(main->start_addr, main->file_size);
@@ -302,11 +301,14 @@ elfp_main_fini(elfp_main *main)
 	close(main->fd);
 
 	/* De-init the free vector */
-	elfp_free_addr_vector_fini(&main->free_vec);
+	elfp_free_addr_vector_fini(&main->free_vec); 
 
 	/* Now that we have cleaned up everything inside the object,
 	 * it is time to clean the object itself */
 	free(main);
+	
+	/* Inform main_vec about it */
+	elfp_main_vec_inform(handle);
 
 	/* All the above functions can present a runtime error.
 	 * But they are ignored because nothing can be done to
@@ -401,7 +403,7 @@ elfp_main_vec_fini()
 	
 	/* Iterate through the vector and free all the active objects */
 	for(i = 0; i < main_vec.latest; i++)
-	{
+	{	
 		if(main_vec.vec[i] != NULL)
 			elfp_main_fini(main_vec.vec[i]);
 	}
@@ -416,4 +418,35 @@ void
 elfp_main_vec_inform(int handle)
 {
 	main_vec.vec[handle] = NULL;
+}
+
+elfp_main*
+elfp_main_vec_get_em(int handle)
+{
+	return main_vec.vec[handle];
+}
+
+int
+elfp_sanitize_handle(int handle)
+{
+	/* Basic boundary checks */
+	if(handle < 0 || handle >= main_vec.latest)
+	{
+		elfp_err_warn("elfp_sanitize_handle", "Invalid Handle passed");
+		return -1;
+	}
+
+	elfp_main *main = NULL;
+	/* Now we know that the handle is in the valid range.
+	 * Let us see if it has been closed before */
+	main = elfp_main_vec_get_em(handle);
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_sanitize_handle", "Handle already closed");
+		return -1;
+	}
+	
+	/* At this point, these checks are sufficient.
+	 * We may add other checks later */
+	return 0;
 }

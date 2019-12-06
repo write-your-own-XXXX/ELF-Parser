@@ -204,5 +204,26 @@ elfp_main_vec_fini();
 void
 elfp_main_vec_inform(int handle);
 
+/*
+ * elfp_main_vec_get_em: Returns the elfp_main object corresponding to 
+ * 	a given user handle.
+ *
+ * @arg0: User handle, an integer.
+ *
+ * @return: Reference to an elfp_main object.
+ */
+
+elfp_main*
+elfp_main_vec_get_em(int handle);
+
+/*
+ * elfp_sanitize_handle: Sanitizes the user fed handle.
+ *
+ * @arg0: User handle
+ *
+ * @return: 0 if the user handle is valid. -1 if user handle is invalid.
+ */
+int
+elfp_sanitize_handle(int handle);
 
 #endif /* _ELFP_INT_H */
