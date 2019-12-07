@@ -4,8 +4,9 @@
  * Description: 
  *
  * 1. This is a simple demonstration of the elfp_free_addr_vector structure.
- * 2. Compile this in the following manner.
- * 	$ gcc check_free_list.c ../src/elfp_int.c -o free_list
+ *
+ * 2. Go to ELF-Parser/src and run "$ make examples". Check the examples/build
+ * 	directory.
  *
  * 3. Main idea is to make sure the functions (init, add, fini) are 
  * 	implemented properly.

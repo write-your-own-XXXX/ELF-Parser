@@ -5,8 +5,8 @@
  *
  * 1. Tests the elfp_main implementation.
  *
- * 2. Compilation.
- * 	$ gcc check_elfp_main.c ../src/elfp_int.c -o check_elfp_main
+ * 2. Go to ELF-Parser/src and run "$ make examples". Check the examples/build   
+ *      directory.
  *
  * 3. How do you verify the output?
  * 	a. The file size can be obtained with "ls -l". That file size

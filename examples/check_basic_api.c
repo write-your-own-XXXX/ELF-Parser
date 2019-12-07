@@ -6,8 +6,8 @@
  * 1. Uses the 4 basic API defined in elfp_basic_api.c and makes
  * sure they are functioning properly.
  *
- * 2. Compilation.
- * 	$ gcc check_basic_api.c ../src/elfp_int.c ../src/elfp_basic_api.c -o check_basic_api
+ * 2. Go to ELF-Parser/src and run "$ make examples". Check the examples/build   
+ *      directory.
  * 
  * 3. NOTE: I realized that there is a upper limit on the number of files a process can open.
  *

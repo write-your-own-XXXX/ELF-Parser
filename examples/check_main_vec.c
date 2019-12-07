@@ -5,8 +5,8 @@
  *
  * 1. Program which tests the functionality of main_vec.
  *
- * 2. Compilation.
- * 	$ gcc check_main_vec1.c ../src/elfp_int.c -o check_main_vec1
+ * 2. Go to ELF-Parser/src and run "$ make examples". Check the examples/build   
+ *      directory.
  *
  * 3. Valgrind didn't detect any leaks.
  */
