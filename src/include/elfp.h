@@ -62,6 +62,110 @@ elfp_open(const char *elfp_elf_path);
  * @return: 0 on success, -1 on failure.
  */
 int
-elfp_close(int user_handle);
+elfp_close(int handle);
+
+/******************************************************************************
+ * Parsing the ELF Header.
+ *
+ * 1. elfp_dump_ehdr: An in-built function which dumps the ELF Header in
+ * 	human readable form.
+ *
+ * 2. elfp_get_ehdr: A function which returns a reference to an elfp_ehdr
+ * 	instance, using which the programmer can write a dump function.
+ *
+ * 3. Decode functions for all members of header which are present in 
+ * 	encoded form.
+ *****************************************************************************/
+
+/*
+ * elfp_dump_ehdr:
+ *
+ * @arg0: User Handle
+ *
+ * @return: 0 on success, -1 on failure.
+ */
+int
+elfp_dump_ehdr(int handle);
+
+/*
+ * elfp_get_ehdr:
+ *
+ * @arg0: User Handle
+ *
+ * @return: Pointer to ELF header.
+ * 	* A void pointer is returned because we wouldn't know
+ * 	if it is a 32-bit or 64-bit object till e_ident is parsed.
+ */
+void*
+elfp_get_ehdr(int handle);
+
+/*
+ * Decode functions.
+ */
+
+/*
+ * elfp_ehdr_decode_class: Decodes the class and returns a
+ * decoded, human understandable string.
+ *
+ * @arg0: Class
+ *
+ * @return: A string.
+ */
+const char*
+elfp_ehdr_decode_class(unsigned long int class);
+
+/*
+ * elfp_ehdr_decode_dataenc: Decodes the type of Data Encoding
+ * used to pack this ELF file.
+ *
+ * @arg0: Data encoding byte
+ *
+ * @return: An equivalent meaningful string.
+ */
+const char*
+elfp_ehdr_decode_dataenc(unsigned long int data_enc);
+
+/*
+ * elfp_ehdr_decode_version: Decodes the ELF version.
+ *
+ * @arg0: Version
+ *
+ * @return: A string
+ */
+
+const char*
+elfp_ehdr_decode_version(unsigned long int version);
+
+/*
+ * elfp_ehdr_decode_osabi: Decodes the type of OSABI this ELF file
+ * abides by.
+ *
+ * @arg0: The OSABI byte
+ *
+ * @return: A string
+ */
+const char*
+elfp_ehdr_decode_osabi(unsigned long int osabi);
+
+/*
+ * elfp_ehdr_decode_type: Decodes the type of ELF file.
+ *
+ * @arg0: Type in encoded form
+ *
+ * @return: Type in decoded form.
+ */
+const char*
+elfp_ehdr_decode_type(unsigned long int type);
+
+/*
+ * elfp_ehdr_decode_machine: Decodes the type of architecture
+ * this ELF file was built for.
+ *
+ * @arg0: machine in encoded form
+ *
+ * @return: Machine in decoded form.
+ */
+const char*
+elfp_ehdr_decode_machine(unsigned long int machine);
 
 #endif /* _ELFP_H */
