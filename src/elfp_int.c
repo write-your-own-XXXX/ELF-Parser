@@ -318,7 +318,70 @@ elfp_main_fini(elfp_main *main)
 	return 0;
 }
 
+int
+elfp_main_get_fd(elfp_main *main)
+{
+	/* Basic check */
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_main_get_fd", "NULL argument passed");
+		return -1;
+	}
 
+	return main->fd;
+}
+
+unsigned long int
+elfp_main_get_filesz(elfp_main *main)
+{
+	/* Basic check */
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_main_get_filesz", "NULL argument passed");
+		return 0;
+	}
+
+	return main->file_size;
+}
+
+void*
+elfp_main_get_staddr(elfp_main *main)
+{	
+	/* Basic check */
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_main_get_staddr", "NULL argument passed");
+		return NULL;
+	}
+
+	return main->start_addr;
+}
+
+int
+elfp_main_get_handle(elfp_main *main)
+{
+	/* Basic check */
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_main_get_handle", "NULL argument passed");
+		return -1;
+	}
+
+	return main->handle;
+}
+
+elfp_free_addr_vector*
+elfp_main_get_freevec(elfp_main *main)
+{
+	/* Basic check */
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_main_get_freevec", "NULL argument passed");
+		return NULL;
+	}
+
+	return &main->free_vec;
+}
 
 /*
  * All definitions related to elfp_main_vector(main_vec) are present below.
@@ -416,7 +479,16 @@ elfp_main_vec_fini()
 
 void
 elfp_main_vec_inform(int handle)
-{
+{	
+	int ret;
+	
+	/* Sanity check */
+	ret = elfp_sanitize_handle(handle);
+	if(ret == -1)
+	{
+		elfp_err_warn("elfp_main_vec_inform", "Handle failed sanity test");
+		return;
+	}
 	main_vec.vec[handle] = NULL;
 }
 

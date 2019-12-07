@@ -143,6 +143,57 @@ elfp_main_update_handle(elfp_main *main, int handle);
 int
 elfp_main_fini(elfp_main *main);
 
+/*
+ * elfp_main_get_fd: Gets the file descriptor.
+ *
+ * @arg0: Reference to an elfp_main object
+ *
+ * @return: -1 on failure, fd on success.
+ */
+int
+elfp_main_get_fd(elfp_main *main);
+
+/*
+ * elfp_main_get_filesz: Gets file size
+ *
+ * @arg0: Reference to an elfp_main object
+ *
+ * @return: 0 on failure, file size on success.
+ */
+unsigned long int
+elfp_main_get_filesz(elfp_main *main);
+
+/*
+ * elfp_main_get_staddr: Gets the start address
+ *
+ * @arg0: Reference to an elfp_main object
+ *
+ * @return: NULL on failure, start address on success.
+ */
+void*
+elfp_main_get_staddr(elfp_main *main);
+
+/*
+ * elfp_main_get_handle: Gets the handle
+ *
+ * @arg0: Reference to an elfp_main object
+ *
+ * @return: -1 on failure, handle on success.
+ */
+int
+elfp_main_get_handle(elfp_main *main);
+
+/*
+ * elfp_main_get_freevec: Gets the reference to the free vector.
+ *
+ * @arg0: Reference to an elfp_main object
+ *
+ * @return: NULL on failure, reference to the free vector on success.
+ */
+elfp_free_addr_vector*
+elfp_main_get_freevec(elfp_main *main);
+
+
 
 /******************************************************************************
  * Structure: elfp_main_vector
