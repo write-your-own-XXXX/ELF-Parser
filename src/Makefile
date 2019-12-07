@@ -1,6 +1,36 @@
 CC = gcc
 CFLAGS = -fstack-protector-all -O2
 
+help:
+	$(info "Welcome to libelfp's build system.")
+	$(info ==================================)
+	$(info The following can be make's arguments: )
+	$(info )
+	$(info 1. build: Builds the library )
+	$(info ---------------------------- )
+	$(info a. Build the library)
+	$(info b. Puts the shared object (libelfp.so) and other object files in src/build directory.)
+	$(info )
+	$(info 2. install: Installs the library )
+	$(info -------------------------------- )
+	$(info a. make build )
+	$(info b. Puts libelfp.so in /usr/lib/x86_64-linux-gnu)
+	$(info c. Puts the main header file elfp.h in /usr/include/elfp)
+	$(info )
+	$(info 3. app: Builds the app )
+	$(info ---------------------- )
+	$(info a. make install)
+	$(info b. Build the app )
+	$(info )
+	$(info 4. examples: Builds examples )
+	$(info ---------------------------- )
+	$(info a. You can find examples in examples/build directory )
+	$(info )
+	$(info 5. clean: Removes src/build, src/app, examples/build )
+	$(info )
+	$(info 6. uninstall: Uninstalls the library )
+	$(info )
+
 # All the built files(object files and library) will be found in the build directory.
 # Finally, check src/build directory.
 build: 
@@ -45,7 +75,3 @@ examples:
 	gcc ../examples/check_free_list.c -o ../examples/build/check_free_list -lelfp
 	gcc ../examples/check_main_vec.c -o ../examples/build/check_main_vec -lelfp
 	gcc ../examples/check_basic_api.c -o ../examples/build/check_basic_api -lelfp
-
-# Cleans up examples directory.
-examples_clean:
-	rm -r ../examples/build
