@@ -47,8 +47,10 @@ elfp_fini();
  *
  * @arg0: Path / name of ELF File
  *
- * @return: A non-negative integer - handler on success.
+ * @return: A non-negative integer - handle on success.
  *              (-1) on failure.
+ * 	
+ * 	* This handle should be used in all further functions.
  */
 int
 elfp_open(const char *elfp_elf_path);
@@ -57,7 +59,7 @@ elfp_open(const char *elfp_elf_path);
 /*
  * elfp_close: Closes everything about the specified handle.
  *
- * @arg0: User handle obtained from an elfp_open call.
+ * @arg0: File handle obtained from an elfp_open call.
  *
  * @return: 0 on success, -1 on failure.
  */
@@ -80,7 +82,7 @@ elfp_close(int handle);
 /*
  * elfp_dump_ehdr:
  *
- * @arg0: User Handle
+ * @arg0: File Handle returned by elfp_open()
  *
  * @return: 0 on success, -1 on failure.
  */
@@ -90,7 +92,7 @@ elfp_dump_ehdr(int handle);
 /*
  * elfp_get_ehdr:
  *
- * @arg0: User Handle
+ * @arg0: File Handle returned by elfp_open()
  *
  * @return: Pointer to ELF header.
  * 	* A void pointer is returned because we wouldn't know
@@ -100,7 +102,13 @@ void*
 elfp_get_ehdr(int handle);
 
 /*
- * Decode functions.
+ * Decode functions:
+ *
+ * If you want to parse the ELF header on your own, 
+ * you can make use of these decode functions. 
+ * 
+ * All the members of ELF header present in encoded form have a 
+ * decode function below. Other members can be printed as-is.
  */
 
 /*
