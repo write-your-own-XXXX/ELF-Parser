@@ -39,7 +39,17 @@ sudo cp ./include/elfp.h /usr/include/elfp
 
 * The library's API is present in ```elfp/elfp.h```, which you can refer to.
 
-## 3. Writing your own application
+## 3. Functionalities
+
+1. You can open up multiple files at once and process it. You can write a standalone ELF parsing tool or use our library elsewhere where you would need ELF parsing capabilities.
+2. The Library can parse the following data structures:
+	* ELF header
+	* Program Header
+	* Program Header Table
+
+The library is still a baby. New functionalities will be added gradually.
+
+## 4. Writing your own application
 
 ```libelfp``` offers a very simple and easy-to-use API. We can parse ELFs in no time. Let us write an application to experience it.
 
@@ -111,7 +121,14 @@ Similar to Linux, ```libelfp``` returns a file descriptor (or handle) to manage 
         elfp_ehdr_dump(fd);
 ```
 
-**6.** Finally, de-init the library and come out.
+**6.** You can also dump the Program Header Table.
+
+```c
+	/* Dump the PHT */
+        elfp_pht_dump(fd);
+```
+
+**7.** Finally, de-init the library and come out.
 
 ```c
         /* De-init the library */
@@ -153,6 +170,100 @@ ELF Header:
 15. Section Header count: 28
 16. Section Header String Table index: 27
 ==================================================
+
+==================================================
+Program Header Table: 
+
+Entry 00: 
+00. Type: PHDR (Entry for header table)
+01. Flags: r-x
+02. Segment file offset: 64 bytes
+03. Virtual Address: 0x40
+04. Physical Address: 0x40
+05. Segment size in file: 504 bytes
+06. Segment size in memory: 504 bytes
+07. Segment Alignment: 0x8
+---------------------------------------------
+Entry 01: 
+00. Type: INTERP (Program Interpreter)
+01. Flags: r--
+02. Segment file offset: 568 bytes
+03. Virtual Address: 0x238
+04. Physical Address: 0x238
+05. Segment size in file: 28 bytes
+06. Segment size in memory: 28 bytes
+07. Segment Alignment: 0x1
+---------------------------------------------
+Entry 02: 
+00. Type: LOAD (Loadable program segment)
+01. Flags: r-x
+02. Segment file offset: 0 bytes
+03. Virtual Address: 0x0
+04. Physical Address: 0x0
+05. Segment size in file: 124648 bytes
+06. Segment size in memory: 124648 bytes
+07. Segment Alignment: 0x200000
+---------------------------------------------
+Entry 03: 
+00. Type: LOAD (Loadable program segment)
+01. Flags: rw-
+02. Segment file offset: 126960 bytes
+03. Virtual Address: 0x21eff0
+04. Physical Address: 0x21eff0
+05. Segment size in file: 4728 bytes
+06. Segment size in memory: 9584 bytes
+07. Segment Alignment: 0x200000
+---------------------------------------------
+Entry 04: 
+00. Type: DYNAMIC (Dynamic Linking information)
+01. Flags: rw-
+02. Segment file offset: 129592 bytes
+03. Virtual Address: 0x21fa38
+04. Physical Address: 0x21fa38
+05. Segment size in file: 512 bytes
+06. Segment size in memory: 512 bytes
+07. Segment Alignment: 0x8
+---------------------------------------------
+Entry 05: 
+00. Type: NOTE (Auxillary Information)
+01. Flags: r--
+02. Segment file offset: 596 bytes
+03. Virtual Address: 0x254
+04. Physical Address: 0x254
+05. Segment size in file: 68 bytes
+06. Segment size in memory: 68 bytes
+07. Segment Alignment: 0x4
+---------------------------------------------
+Entry 06: 
+00. Type: GNU_EH_FRAME (GCC .eh_frame_hdr segment)
+01. Flags: r--
+02. Segment file offset: 111008 bytes
+03. Virtual Address: 0x1b1a0
+04. Physical Address: 0x1b1a0
+05. Segment size in file: 2180 bytes
+06. Segment size in memory: 2180 bytes
+07. Segment Alignment: 0x4
+---------------------------------------------
+Entry 07: 
+00. Type: GNU_STACK (Indicates stack executability)
+01. Flags: rw-
+02. Segment file offset: 0 bytes
+03. Virtual Address: 0x0
+04. Physical Address: 0x0
+05. Segment size in file: 0 bytes
+06. Segment size in memory: 0 bytes
+07. Segment Alignment: 0x10
+---------------------------------------------
+Entry 08: 
+00. Type: GNU_RELRO (Read-only after relocation)
+01. Flags: r--
+02. Segment file offset: 126960 bytes
+03. Virtual Address: 0x21eff0
+04. Physical Address: 0x21eff0
+05. Segment size in file: 4112 bytes
+06. Segment size in memory: 4112 bytes
+07. Segment Alignment: 0x1
+---------------------------------------------
 ```
 
 A run on a 32-bit Intel shared object.
@@ -181,11 +292,7 @@ ELF Header:
 ==================================================
 ```
 
-## 4. What are the library features?
-
-1. Simple, easy-to-use API
-2. Multiple ELF files can be opened for processing at once.
-3. The library is still a baby. It can only parse both 32-bit and 64-bit ELF headers as of now. Code to parse other ELF-related data structures will be gradually added.
+Your system would be full of ELF files. Use ```libelfp``` to learn more about them!
 
 ## 5. Bugs?
 

@@ -28,6 +28,135 @@
 #include "./include/elfp_int.h"
 #include "./include/elfp.h"
 
+/*
+ * The below functions are related to elfp_pht.
+ * They are API exposed to programmers. Refer elfp.h for more
+ * details.
+ */
+void*
+elfp_pht_get(int handle, unsigned long int *class)
+{
+        int ret;
+        elfp_main *main = NULL;
+        void *pht = NULL;
+        Elf64_Ehdr *e64hdr = NULL;
+        Elf32_Ehdr *e32hdr = NULL;
+
+        /* Sanity check */
+        ret = elfp_sanitize_handle(handle);
+        if(ret == -1)
+        {
+                elfp_err_warn("elfp_pht_get", "Handle failed the sanity test");
+                return NULL;
+        }
+
+        /* Get the class */
+        main = elfp_main_vec_get_em(handle);
+        *class = elfp_main_get_class(main);
+
+        /* Return based on class */
+        switch((*class))
+        {
+                case ELFCLASS32:
+                        e32hdr = (Elf32_Ehdr *)elfp_main_get_staddr(main);
+			/* Check if this has no Program Headers */
+			if(e32hdr->e_phnum == 0)
+				goto no_pht;
+                        pht = ((unsigned char *)e32hdr + e32hdr->e_phoff);
+                        return pht;
+
+                /*ELFCLASS64, anything else will be treated as 64-bit objects */
+                default:                                         
+			e64hdr = (Elf64_Ehdr *)elfp_main_get_staddr(main);
+			/* Check if this has no Program Headers */
+			if(e64hdr->e_phnum == 0)
+				goto no_pht;
+			pht = ((unsigned char *)e64hdr + e64hdr->e_phoff);
+			return pht;
+	}
+
+no_pht:
+	*class = ELFCLASSNONE;
+	return NULL;
+}
+
+int
+elfp_pht_dump(int handle)
+{
+        int ret;
+
+        /* Sanity check */
+        ret = elfp_sanitize_handle(handle);
+        if(ret == -1)
+        {
+                elfp_err_warn("elfp_pht_dump", "Handle failed the sanity test");
+                return -1;
+        }
+
+        elfp_main *main = NULL;
+        unsigned long int class;
+        unsigned long int phnum;
+        Elf64_Ehdr *e64hdr = NULL;
+        Elf32_Ehdr *e32hdr = NULL;
+        unsigned int i;
+        
+        /* Get the class */
+        main = elfp_main_vec_get_em(handle);
+        class = elfp_main_get_class(main);
+        /* Get the total number of headers.
+         *
+         * There are 2 ways to get the number of headers.
+         * 1. Get it from ELF header: The e_phnum member has it.
+         * 
+         * 2. The PT_PHDR Program Header has the total size of the Table.
+         *      * We know size of each entry - sizeof(ElfN_Phdr)
+         *      * From these, we can calculate number of headers.
+         *      * phnum = (phdr->p_filesz) / sizeof(ElfN_Phdr);
+         *
+         * Following method 1.
+         */
+
+        switch(class)
+        {
+                case ELFCLASS32:
+                        e32hdr = (Elf32_Ehdr *)elfp_main_get_staddr(main);
+                        phnum = e32hdr->e_phnum;
+                        break;
+
+                case ELFCLASS64:
+                        e64hdr = (Elf64_Ehdr *)elfp_main_get_staddr(main);
+                        phnum = e64hdr->e_phnum;
+                        break;
+
+		/* Anything else is also considered as 64-bit object */
+                default:
+                        e64hdr = (Elf64_Ehdr *)elfp_main_get_staddr(main);
+                        phnum = e64hdr->e_phnum;
+        }
+        
+        /* Check if there are any program headers */
+        if(phnum == 0)
+        {
+                printf("There are no Program Headers in this file\n");
+                return 0;
+        }
+
+        /* Now we have everything. Let us dump everything */
+        i = 0;
+        printf("\n==================================================\n");
+        printf("Program Header Table: \n\n");
+        
+        while (i < phnum)
+        {
+                printf("Entry %02u: \n", i);
+                elfp_phdr_dump(handle, i);
+                printf("---------------------------------------------\n");
+                i = i + 1;
+        }
+	
+	return 0;
+}
+
 
 /*
  * The below functions are related to elfp_phdr.

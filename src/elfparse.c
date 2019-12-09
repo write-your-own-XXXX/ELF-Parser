@@ -61,6 +61,9 @@ main(int argc, char **argv)
 	/* Dump the ELF header */
 	elfp_ehdr_dump(fd);
 
+	/* Dump the PHT */
+	elfp_pht_dump(fd);
+
 	/* Close this file */
 	elfp_close(fd);
 

@@ -176,6 +176,37 @@ elfp_ehdr_decode_type(unsigned long int type);
 const char*
 elfp_ehdr_decode_machine(unsigned long int machine);
 
+/******************************************************************************
+ * Parsing the Program Header Table(PHT)
+ *
+ * 1. elfp_pht_dump: Dumps the complete PHT
+ *
+ * 2. elfp_pht_get: Gives a pointer to the PHT to the programmer.
+ *****************************************************************************/
+
+/*
+ * elfp_pht_get:
+ * 
+ * @arg0: Handle
+ * @arg1: A reference to an unsigned long integer. The class of the ELF
+ *      object is sent to the programmer through this. Without class,
+ *      programmer cannot parse the PHT.
+ *
+ * @return: A pointer to PHT on success, NULL on failure.
+ */
+void*
+elfp_pht_get(int handle, unsigned long int *class);
+
+/*
+ * elfp_pht_dump: 
+ *
+ * @arg0: Handle
+ *
+ * @return: 0 on success, -1 on failure
+ */
+int
+elfp_pht_dump(int handle);
+
 
 /******************************************************************************
  * Parsing Program Header
