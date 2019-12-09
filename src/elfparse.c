@@ -59,7 +59,7 @@ main(int argc, char **argv)
 	fd = ret;
 
 	/* Dump the ELF header */
-	elfp_dump_ehdr(fd);
+	elfp_ehdr_dump(fd);
 
 	/* Close this file */
 	elfp_close(fd);
