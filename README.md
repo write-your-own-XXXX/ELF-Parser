@@ -108,7 +108,7 @@ Similar to Linux, ```libelfp``` returns a file descriptor (or handle) to manage 
 
 ```c
         /* Dump the ELF header */
-        elfp_dump_ehdr(fd);
+        elfp_ehdr_dump(fd);
 ```
 
 **6.** Finally, de-init the library and come out.
