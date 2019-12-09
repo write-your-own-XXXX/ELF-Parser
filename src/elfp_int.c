@@ -247,6 +247,11 @@ elfp_main_create(const char *file_path)
 		goto return_munmap;
 	}
 
+	/*
+	 * class: Is it a 32-bit / 64-bit object.
+	 */
+	main->class = main->start_addr[EI_CLASS];
+
 	/* At this point, all members except 'handle' are populated.
 	 *
 	 * 'handle' is a member which a create() function cannot decide.
@@ -381,6 +386,19 @@ elfp_main_get_freevec(elfp_main *main)
 	}
 
 	return &main->free_vec;
+}
+
+unsigned long int
+elfp_main_get_class(elfp_main *main)
+{	
+	/* Basic check */
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_main_get_class", "NULL argument passed");
+		return ELFCLASSNONE;
+	}
+
+	return main->class;
 }
 
 /*

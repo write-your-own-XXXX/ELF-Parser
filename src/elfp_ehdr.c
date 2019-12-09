@@ -183,7 +183,7 @@ elfp_dump_e32hdr(void *start_addr)
  */
 
 void*
-elfp_get_ehdr(int handle)
+elfp_ehdr_get(int handle)
 {
 	int ret;
 	void *addr = NULL;
@@ -193,21 +193,21 @@ elfp_get_ehdr(int handle)
 	ret = elfp_sanitize_handle(handle);
 	if(ret == -1)
 	{
-		elfp_err_warn("elfp_get_ehdr", "Handle failed sanity test");
+		elfp_err_warn("elfp_ehdr_get", "Handle failed sanity test");
 		return NULL;
 	}
 
 	main = elfp_main_vec_get_em(handle);
 	if(main == NULL)
 	{
-		elfp_err_warn("elfp_get_ehdr", "elfp_main_vec_get_em() failed");
+		elfp_err_warn("elfp_ehdr_get", "elfp_main_vec_get_em() failed");
 		return NULL;
 	}
 
 	addr = elfp_main_get_staddr(main);
 	if(addr == NULL)
 	{
-		elfp_err_warn("elfp_get_ehdr", "elfp_main_get_staddr() failed");
+		elfp_err_warn("elfp_ehdr_get", "elfp_main_get_staddr() failed");
 		return NULL;
 	}
 	return addr;
@@ -215,7 +215,7 @@ elfp_get_ehdr(int handle)
 
 
 int
-elfp_dump_ehdr(int handle)
+elfp_ehdr_dump(int handle)
 {
 	void *ehdr = NULL;
 	int ret;
@@ -224,10 +224,10 @@ elfp_dump_ehdr(int handle)
 	unsigned int i;
 	
 	/* Get the header */
-	ehdr = elfp_get_ehdr(handle);
+	ehdr = elfp_ehdr_get(handle);
 	if(ehdr == NULL)
 	{
-		elfp_err_warn("elfp_dump_ehdr", "elfp_get_ehdr() failed");
+		elfp_err_warn("elfp_ehdr_dump", "elfp_ehdr_get() failed");
 		return -1;
 	}
 

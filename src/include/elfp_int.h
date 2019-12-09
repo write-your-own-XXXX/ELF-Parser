@@ -107,7 +107,10 @@ typedef struct elfp_main
 	 * Need to keep track of all this memory and free all of it in the end.
 	 */
 	elfp_free_addr_vector free_vec;
-		
+	
+	/* class */
+	unsigned long int class;
+
 } elfp_main;
 
 /*
@@ -122,6 +125,16 @@ elfp_main*
 elfp_main_create(const char *file_path);
 
 /*
+ * elfp_main_fini: Cleans up everything related to a given elfp_main object.
+ *
+ * @arg0: Reference to an elfp_main object
+ *
+ * @return: 0 on success, -1 on failure.
+ */
+int
+elfp_main_fini(elfp_main *main);
+
+/*
  * elfp_main_update_handle: Updates 'handle' of elfp_main object.
  *
  * @arg0: Reference to an elfp_main object.
@@ -132,16 +145,6 @@ elfp_main_create(const char *file_path);
  */
 int
 elfp_main_update_handle(elfp_main *main, int handle);
-
-/*
- * elfp_main_fini: Cleans up everything related to a given elfp_main object.
- *
- * @arg0: Reference to an elfp_main object
- *
- * @return: 0 on success, -1 on failure.
- */
-int
-elfp_main_fini(elfp_main *main);
 
 /*
  * elfp_main_get_fd: Gets the file descriptor.
@@ -192,6 +195,16 @@ elfp_main_get_handle(elfp_main *main);
  */
 elfp_free_addr_vector*
 elfp_main_get_freevec(elfp_main *main);
+
+/*
+ * elfp_main_get_class: Gets the class - 32-bit or 64-bit.
+ *
+ * @arg0: Reference to an elfp_main object.
+ *
+ * @return: The class
+ */
+unsigned long int
+elfp_main_get_class(elfp_main *main);
 
 
 
