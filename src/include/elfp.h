@@ -69,10 +69,10 @@ elfp_close(int handle);
 /******************************************************************************
  * Parsing the ELF Header.
  *
- * 1. elfp_dump_ehdr: An in-built function which dumps the ELF Header in
+ * 1. elfp_ehdr_dump: An in-built function which dumps the ELF Header in
  * 	human readable form.
  *
- * 2. elfp_get_ehdr: A function which returns a reference to an elfp_ehdr
+ * 2. elfp_ehdr_get: A function which returns a reference to an elfp_ehdr
  * 	instance, using which the programmer can write a dump function.
  *
  * 3. Decode functions for all members of header which are present in 
@@ -80,17 +80,17 @@ elfp_close(int handle);
  *****************************************************************************/
 
 /*
- * elfp_dump_ehdr:
+ * elfp_ehdr_dump:
  *
  * @arg0: File Handle returned by elfp_open()
  *
  * @return: 0 on success, -1 on failure.
  */
 int
-elfp_dump_ehdr(int handle);
+elfp_ehdr_dump(int handle);
 
 /*
- * elfp_get_ehdr:
+ * elfp_ehdr_get:
  *
  * @arg0: File Handle returned by elfp_open()
  *
@@ -99,7 +99,7 @@ elfp_dump_ehdr(int handle);
  * 	if it is a 32-bit or 64-bit object till e_ident is parsed.
  */
 void*
-elfp_get_ehdr(int handle);
+elfp_ehdr_get(int handle);
 
 /*
  * Decode functions:
@@ -175,5 +175,50 @@ elfp_ehdr_decode_type(unsigned long int type);
  */
 const char*
 elfp_ehdr_decode_machine(unsigned long int machine);
+
+
+/******************************************************************************
+ * Parsing Program Header
+ * 
+ * 1. elfp_phdr_dump: Dumps the specified program header.
+ *
+ * 2. Deocode functions for members present in encoded form.
+ *****************************************************************************/
+
+/*
+ * elfp_phdr_dump:
+ *
+ * @arg0: Handle
+ * @arg1: Program Header's index in the Program Header table.
+ *
+ * @return: 0 on success, -1 on failure.
+ */
+int
+elfp_phdr_dump(int handle, int index);
+
+
+/*
+ * Decode functions
+ */
+
+/*
+ * elfp_phdr_decode_type: Decodes the Segment type
+ *
+ * @arg0: Segment type
+ *
+ * @return: Decoded string.
+ */
+const char*
+elfp_phdr_decode_type(unsigned long int type);
+
+/*
+ * elfp_phdr_decode_flags: Decodes the security permissions.
+ *
+ * @arg0: Flags
+ *
+ * @return: Decoded string
+ */
+const char*
+elfp_phdr_decode_flags(unsigned long int flags);
 
 #endif /* _ELFP_H */
