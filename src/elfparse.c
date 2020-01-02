@@ -59,10 +59,10 @@ main(int argc, char **argv)
 	fd = ret;
 	
 	/* Dump the ELF header */
-	/* elfp_ehdr_dump(fd); */
+	elfp_ehdr_dump(fd);
 
 	/* Dump the PHT */
-	/* elfp_pht_dump(fd); */
+	elfp_pht_dump(fd);
  
 	/* Let us dump the INTERP segment */
 	ret = elfp_seg_dump(fd, "INTERP");
