@@ -57,12 +57,29 @@ main(int argc, char **argv)
 	}
 
 	fd = ret;
-
+	
 	/* Dump the ELF header */
-	elfp_ehdr_dump(fd);
+	/* elfp_ehdr_dump(fd); */
 
 	/* Dump the PHT */
-	elfp_pht_dump(fd);
+	/* elfp_pht_dump(fd); */
+ 
+	/* Let us dump the INTERP segment */
+	ret = elfp_seg_dump(fd, "INTERP");
+	if(ret == -1)
+	{
+		fprintf(stderr, "elfp_seg_dump() failed\n");
+		elfp_fini();
+		return -1;
+	}
+
+	ret = elfp_seg_dump(fd, "GNU_STACK");
+	if(ret == -1)
+	{
+		fprintf(stderr, "elfp_seg_dump() failed\n");
+		elfp_fini();
+		return -1;
+	}
 
 	/* Close this file */
 	elfp_close(fd);

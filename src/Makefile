@@ -35,8 +35,8 @@ help:
 # Finally, check src/build directory.
 build: 
 	# Building the library
-	$(CC) elfp_int.c elfp_basic_api.c elfp_ehdr.c elfp_phdr.c -c -fPIC $(CFLAGS)
-	$(CC) elfp_int.o elfp_basic_api.o elfp_ehdr.o elfp_phdr.o -shared $(CFLAGS) -o libelfp.so
+	$(CC) elfp_int.c elfp_basic_api.c elfp_ehdr.c elfp_phdr.c elfp_seg.c -c -fPIC $(CFLAGS)
+	$(CC) elfp_int.o elfp_basic_api.o elfp_ehdr.o elfp_phdr.o elfp_seg.o -shared $(CFLAGS) -o libelfp.so
 	mkdir build
 	mv libelfp.so *.o build
 
@@ -76,3 +76,5 @@ examples:
 	gcc ../examples/check_main_vec.c -o ../examples/build/check_main_vec -lelfp
 	gcc ../examples/check_basic_api.c -o ../examples/build/check_basic_api -lelfp
 	gcc ../examples/check_elfp_phdr.c -o ../examples/build/check_elfp_phdr -lelfp
+	gcc ../examples/dump_gnu_stack.c -o ../examples/build/dump_gnu_stack -lelfp
+	gcc ../examples/dump_interp.c -o ../examples/build/dump_interp -lelfp

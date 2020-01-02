@@ -252,4 +252,69 @@ elfp_phdr_decode_type(unsigned long int type);
 const char*
 elfp_phdr_decode_flags(unsigned long int flags);
 
+/******************************************************************************
+ * Parsing individual segments.
+ *
+ * 1. elfp_seg_get(): Get pointers to segments of a specified type.
+ * 2. elfp_seg_dump(): Dump the Segment(s) you want.
+ *****************************************************************************/
+
+/*
+ * elfp_seg_get(): 
+ *
+ * @arg0: elfp handle
+ * @arg1: Segment name. Eg: "INTERP", "TLS", "LOAD", "DYNAMIC" etc.,
+ * @arg2: A pointer to an unsigned long integer. This is the second
+ * 		return value of this function.
+ * 
+ * @return: A pointer to an array of (void *) pointers, each pointer
+ * 		pointing to a segment.
+ *
+ * Essentially, you'll be getting the following info.
+ *
+ * 1. An array of pointers, each of them pointing to a segment of the
+ * 	specified type.
+ * 2. Total number of pointers in the above array.
+ *
+ * 3 cases can occur:
+ * a. One or more segments of requested type are present - Happy case.
+ * 
+ * b. Some internal error occurs and library returns an error.
+ * 	* @return = NULL
+ * 	* @arg2 = 1
+ *
+ * c. No segments of requested type are present.
+ * 	* @return = NULL
+ * 	* @arg2 = 0
+ *
+ * From @arg2, the programmer should know what actually happened
+ * and why the function returned a NULL.
+ */
+
+void**
+elfp_seg_get(int handle, const char *seg_type, unsigned long int *ptr_count);
+
+/*
+ * elfp_seg_dump: Dumps the specified segment, if it is dumpable.
+ *
+ * @arg0: elfp handle
+ * @arg1: Segment name. Eg: "INTERP", "TLS", "LOAD", "DYNAMIC" etc.,
+ *
+ * @return: 0 on success, -1 on failure.
+ */
+
+int
+elfp_seg_dump(int handle, const char *seg_type);
+
+
+
+
+
+
+
+
+
+
+
+
 #endif /* _ELFP_H */
