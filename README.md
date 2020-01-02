@@ -46,6 +46,7 @@ sudo cp ./include/elfp.h /usr/include/elfp
 	* ELF header
 	* Program Header
 	* Program Header Table
+	* Dump INTERP and GNU_STACK segment types
 
 The library is still a baby. New functionalities will be added gradually.
 
