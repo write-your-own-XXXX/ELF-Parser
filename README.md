@@ -2,59 +2,56 @@
 
 **libelfp** is a simple ELF Parsing Library written to understand ELF better.
 
-**NOTE**: This project is still under development.
+**NOTE**: This project is till under development.
 
-## 1. Building the library
+## Installing the library
 
-In the ```src``` directory,
-
-```
-ELF-Parser/src$ make build
-# Building the library
-gcc elfp_int.c elfp_basic_api.c elfp_ehdr.c -c -fPIC -fstack-protector-all -O2
-gcc elfp_int.o elfp_basic_api.o elfp_ehdr.o -shared -fstack-protector-all -O2 -o libelfp.so
-```
-
-Have a look at ```src/build``` directory. It'll have the shared object.
+1. Clone the library.
 
 ```
-ELF-Parser/src$ ls ./build
-elfp_basic_api.o  elfp_ehdr.o  elfp_int.o  libelfp.so
+$ git clone https://github.com/write-your-own-XXXX/ELF-Parser.git
+Cloning into 'ELF-Parser'...
+remote: Enumerating objects: 147, done.
+remote: Counting objects: 100% (147/147), done.
+remote: Compressing objects: 100% (94/94), done.
+remote: Total 147 (delta 71), reused 120 (delta 47), pack-reused 0
+Receiving objects: 100% (147/147), 43.86 KiB | 197.00 KiB/s, done.
+Resolving deltas: 100% (71/71), done.
+$
 ```
 
-In order to use the library, it is better to install it rather than just build it.
-
-## 2. Installing the library
+2. Installing the library.
 
 ```
 ELF-Parser/src$ make install
-make build
-make[1]: Entering directory '/home/dell/Documents/projects/write-your-own-XXXX/ELF-Parser/src'
-make[1]: 'build' is up to date.
-make[1]: Leaving directory '/home/dell/Documents/projects/write-your-own-XXXX/ELF-Parser/src'
-sudo cp build/libelfp.so /usr/lib/x86_64-linux-gnu
-sudo mkdir /usr/include/elfp
-sudo cp ./include/elfp.h /usr/include/elfp
 ```
 
-* The library's API is present in ```elfp/elfp.h```, which you can refer to.
+You are good to go!
 
-## 3. Functionalities
+3. Building the library
+
+If you just want to build the library, instead of installing it, you can do the same.
+
+```
+ELF-Parser/src$ make build
+```
+
+## Functionalities
 
 1. You can open up multiple files at once and process it. You can write a standalone ELF parsing tool or use our library elsewhere where you would need ELF parsing capabilities.
 2. The Library can parse the following data structures:
 	* ELF header
 	* Program Header
 	* Program Header Table
-	* Dump INTERP and GNU_STACK segment types
+	* Dump INTERP and GNU_STACK segment types.
 
-The library is still a baby. New functionalities will be added gradually.
+The library is still a baby. Functionalities will be continuously added.
 
-## 4. Writing your own application
+## Writing an ELF Parser
 
-```libelfp``` offers a very simple and easy-to-use API. We can parse ELFs in no time. Let us write an application to experience it.
+```libelfp``` offers a very simple and easy-to-use API. We can parse ELF files in no time. Let us write a simple parser.
 
-Let us refer to the header file ```elfp/elfp.h``` while writing it. Let us call the application ```elfparse```. Open up a C sourcefile ```elfparse.c```.
+API is available in ```elfp/elfp.h```. Lets write ```elfparse```!
 
 **1.** Header files
 
