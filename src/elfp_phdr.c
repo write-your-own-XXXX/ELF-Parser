@@ -34,34 +34,42 @@
  * details.
  */
 void*
-elfp_pht_get(int handle, unsigned long int *class)
+elfp_pht_get(int handle)
 {
-        int ret;
-        elfp_main *main = NULL;
-        void *pht = NULL;
-        Elf64_Ehdr *e64hdr = NULL;
-        Elf32_Ehdr *e32hdr = NULL;
-
         /* Sanity check */
-        ret = elfp_sanitize_handle(handle);
-        if(ret == -1)
+        if(elfp_sanitize_handle(handle) == -1)
         {
                 elfp_err_warn("elfp_pht_get", "Handle failed the sanity test");
                 return NULL;
         }
 
+        int ret;
+        elfp_main *main = NULL;
+        void *pht = NULL;
+        Elf64_Ehdr *e64hdr = NULL;
+        Elf32_Ehdr *e32hdr = NULL;
+	unsigned long int class;
+
         /* Get the class */
         main = elfp_main_vec_get_em(handle);
-        *class = elfp_main_get_class(main);
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_pht_get", "elfp_main_vec_get_em() failed");
+		return NULL;
+	}
 
         /* Return based on class */
-        switch((*class))
+        switch(class)
         {
                 case ELFCLASS32:
                         e32hdr = (Elf32_Ehdr *)elfp_main_get_staddr(main);
 			/* Check if this has no Program Headers */
 			if(e32hdr->e_phnum == 0)
-				goto no_pht;
+			{
+				elfp_err_warn("elfp_pht_get",
+				"This ELF file has no Program Headers");
+				return NULL;
+			}
                         pht = ((unsigned char *)e32hdr + e32hdr->e_phoff);
                         return pht;
 
@@ -70,29 +78,27 @@ elfp_pht_get(int handle, unsigned long int *class)
 			e64hdr = (Elf64_Ehdr *)elfp_main_get_staddr(main);
 			/* Check if this has no Program Headers */
 			if(e64hdr->e_phnum == 0)
-				goto no_pht;
+			{
+				elfp_err_warn("elfp_pht_get",
+				"This ELF file has no Program Headers");
+				return NULL;
+			}
 			pht = ((unsigned char *)e64hdr + e64hdr->e_phoff);
 			return pht;
 	}
-
-no_pht:
-	*class = ELFCLASSNONE;
-	return NULL;
 }
 
 int
 elfp_pht_dump(int handle)
 {
-        int ret;
-
         /* Sanity check */
-        ret = elfp_sanitize_handle(handle);
-        if(ret == -1)
+        if(elfp_sanitize_handle(handle) == -1)
         {
                 elfp_err_warn("elfp_pht_dump", "Handle failed the sanity test");
                 return -1;
         }
 
+        int ret;
         elfp_main *main = NULL;
         unsigned long int class;
         unsigned long int phnum;
@@ -159,14 +165,10 @@ elfp_pht_dump(int handle)
 
 
 /*
- * The below functions are related to elfp_phdr.
- */
-
-/*
  * The below functions are internal to the library.
  */
 
-int
+static int
 elfp_p64hdr_dump(elfp_main *main, int index)
 {
 	Elf64_Ehdr *ehdr = NULL;
@@ -219,7 +221,7 @@ elfp_p64hdr_dump(elfp_main *main, int index)
 }
 
 
-int
+static int
 elfp_p32hdr_dump(elfp_main *main, int index)
 {
 	Elf32_Ehdr *ehdr = NULL;
@@ -280,17 +282,17 @@ elfp_p32hdr_dump(elfp_main *main, int index)
 int
 elfp_phdr_dump(int handle, int index)
 {
-	int ret;
-	unsigned long int class;
-	elfp_main *main = NULL;
-
 	/* Sanitize the handle */
-	ret = elfp_sanitize_handle(handle);
-	if(ret == -1)
+	if(elfp_sanitize_handle(handle)== -1)
 	{
 		elfp_err_warn("elfp_phdr_dump", "Handle failed sanity test");
 		return -1;
 	}
+
+	int ret;
+	unsigned long int class;
+	elfp_main *main = NULL;
+
 	
 	/* To sanitize the index, we should know the total number of
 	 * Program Headers in the Program Header table. This info is present

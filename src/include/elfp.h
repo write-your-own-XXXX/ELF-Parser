@@ -75,7 +75,10 @@ elfp_close(int handle);
  * 2. elfp_ehdr_get: A function which returns a reference to an elfp_ehdr
  * 	instance, using which the programmer can write a dump function.
  *
- * 3. Decode functions for all members of header which are present in 
+ * 3. elfp_ehdr_class_get: A function which returns the class of this ELF.
+ * 	* Class is essential in parsing almost all structures.
+ *
+ * 4. Decode functions for all members of header which are present in 
  * 	encoded form.
  *****************************************************************************/
 
@@ -100,6 +103,17 @@ elfp_ehdr_dump(int handle);
  */
 void*
 elfp_ehdr_get(int handle);
+
+/*
+ * elfp_ehdr_class_get:
+ *
+ * @arg0: File Handle returned by elfp_open()
+ *
+ * @return: Returns ELFCLASSNONE on failure,
+ * 	class on success.
+ */
+unsigned long int
+elfp_ehdr_class_get(int handle);
 
 /*
  * Decode functions:
@@ -188,14 +202,14 @@ elfp_ehdr_decode_machine(unsigned long int machine);
  * elfp_pht_get:
  * 
  * @arg0: Handle
- * @arg1: A reference to an unsigned long integer. The class of the ELF
- *      object is sent to the programmer through this. Without class,
- *      programmer cannot parse the PHT.
- *
+ *	
  * @return: A pointer to PHT on success, NULL on failure.
+ *
+ * It should be noted that PHT cannot be parsed without class
+ * of the ELF. You may use elfp_ehdr_class_get() to get the class.
  */
 void*
-elfp_pht_get(int handle, unsigned long int *class);
+elfp_pht_get(int handle);
 
 /*
  * elfp_pht_dump: 
@@ -257,13 +271,18 @@ elfp_phdr_decode_flags(unsigned long int flags);
  *
  * 1. elfp_seg_get(): Get pointers to segments of a specified type.
  * 2. elfp_seg_dump(): Dump the Segment(s) you want.
+ *
+ * The following are the valid segment types.
+ *
+ * INTERP, TLS, LOAD, DYNAMIC, PHDR, NOTE, GNU_EH_FRAME, GNU_STACK, GNU_RELRO,
+ * SUNWBSS, SUNWSTACK.
  *****************************************************************************/
 
 /*
  * elfp_seg_get(): 
  *
  * @arg0: elfp handle
- * @arg1: Segment name. Eg: "INTERP", "TLS", "LOAD", "DYNAMIC" etc.,
+ * @arg1: Segment name(string). Any segment type from the above list.
  * @arg2: A pointer to an unsigned long integer. This is the second
  * 		return value of this function.
  * 
@@ -298,23 +317,12 @@ elfp_seg_get(int handle, const char *seg_type, unsigned long int *ptr_count);
  * elfp_seg_dump: Dumps the specified segment, if it is dumpable.
  *
  * @arg0: elfp handle
- * @arg1: Segment name. Eg: "INTERP", "TLS", "LOAD", "DYNAMIC" etc.,
+ * @arg1: Segment name(string). Any type from the above list.
  *
  * @return: 0 on success, -1 on failure.
  */
 
 int
 elfp_seg_dump(int handle, const char *seg_type);
-
-
-
-
-
-
-
-
-
-
-
 
 #endif /* _ELFP_H */

@@ -25,55 +25,7 @@
 #ifndef _ELFP_INT_H
 #define _ELFP_INT_H
 
-/******************************************************************************
- * Structure: elfp_free_addr_vector
- *
- * Description: 
- *	* During file parsing, new objects are created using malloc, calloc.
- *	* We need to keep track of these objects(addresses) so that they can
- *		be freed later, once their use is over.
- *****************************************************************************/
-
-#define ELFP_FREE_ADDR_VECTOR_INIT_SIZE 1000
-
-typedef struct elfp_free_addr_vector
-{
-	void **addrs;
-	unsigned long int total;
-	unsigned long int count;
-} elfp_free_addr_vector;
-
-/*
- * elfp_free_addr_vector_init: Initializes a free list
- * 
- * @arg0: A reference to an elfp_free_addr_vector structure.
- *
- * @return: Returns -1 on error, 0 on successful initialization.
- */
-int
-elfp_free_addr_vector_init(elfp_free_addr_vector *vec);
-
-/*
- * elfp_free_addr_vector_fini: Deinitializes a free list.
- * 	* It frees up all the stored addresses and
- * 	frees up the memory allocated for the list.
- *
- * @arg0: A reference to an elfp_free_addr_vector structure.
- */
-void
-elfp_free_addr_vector_fini(elfp_free_addr_vector *vec);
-
-/*
- * elfp_free_addr_vector_add: Adds a given address to the free list.
- *
- * @arg0: Reference to a elfp_free_addr_vector object.
- * @arg1: Address to be stored in the vector.
- *
- * @return: -1 on failure, 0 on success.
- */
-int
-elfp_free_addr_vector_add(elfp_free_addr_vector *vec, void *addr);
-
+#include "elfp_ds.h"
 
 /******************************************************************************
  * Structure: elfp_main
@@ -83,6 +35,7 @@ elfp_free_addr_vector_add(elfp_free_addr_vector *vec, void *addr);
  * 	structure is created.
  *****************************************************************************/
 #define ELFP_FILEPATH_SIZE 256
+#define ELFP_FREE_ADDR_VECTOR_INIT_SIZE 1000
 
 typedef struct elfp_main
 {	
@@ -106,7 +59,7 @@ typedef struct elfp_main
 	 *
 	 * Need to keep track of all this memory and free all of it in the end.
 	 */
-	elfp_free_addr_vector free_vec;
+	elfp_ds_vector free_vec;
 	
 	/* class */
 	unsigned long int class;
@@ -193,7 +146,7 @@ elfp_main_get_handle(elfp_main *main);
  *
  * @return: NULL on failure, reference to the free vector on success.
  */
-elfp_free_addr_vector*
+elfp_ds_vector*
 elfp_main_get_freevec(elfp_main *main);
 
 /*

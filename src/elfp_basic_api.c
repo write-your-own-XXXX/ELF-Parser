@@ -25,6 +25,7 @@
 
 #include "./include/elfp_err.h"
 #include "./include/elfp_int.h"
+#include "./include/elfp.h"
 
 /*
  * Refer elfp.h for functions' description.
@@ -94,16 +95,16 @@ elfp_open(const char *elfp_elf_path)
 int
 elfp_close(int handle)
 {
-	elfp_main *main = NULL;
-	int ret;
 	
-	ret = elfp_sanitize_handle(handle);
-	if(ret == -1)
+	if(elfp_sanitize_handle(handle) == -1)
 	{
 		elfp_err_warn("elfp_close", "elfp_sanitize_handle() failed");
 		return -1;
 	}
 
+	elfp_main *main = NULL;
+	int ret;
+	
 	/* Get the elfp_main object corresponding to the handle */
 	main = elfp_main_vec_get_em(handle);
 	

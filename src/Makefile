@@ -35,8 +35,8 @@ help:
 # Finally, check src/build directory.
 build: 
 	# Building the library
-	$(CC) elfp_int.c elfp_basic_api.c elfp_ehdr.c elfp_phdr.c elfp_seg.c -c -fPIC $(CFLAGS)
-	$(CC) elfp_int.o elfp_basic_api.o elfp_ehdr.o elfp_phdr.o elfp_seg.o -shared $(CFLAGS) -o libelfp.so
+	$(CC) elfp_ds.c elfp_int.c elfp_basic_api.c elfp_ehdr.c elfp_phdr.c elfp_seg.c -c -fPIC $(CFLAGS)
+	$(CC) elfp_ds.o elfp_int.o elfp_basic_api.o elfp_ehdr.o elfp_phdr.o elfp_seg.o -shared $(CFLAGS) -o libelfp.so
 	mkdir build
 	mv libelfp.so *.o build
 
@@ -52,11 +52,13 @@ install:
 	sudo cp build/libelfp.so /usr/lib/x86_64-linux-gnu
 	sudo mkdir /usr/include/elfp
 	sudo cp ./include/elfp.h /usr/include/elfp
+	sudo cp ./include/elfp_ds.h /usr/include/elfp
 
 # Uninstalls the library and cleans up everything.
 uninstall:
 	sudo rm /usr/lib/x86_64-linux-gnu/libelfp.so
 	sudo rm /usr/include/elfp/elfp.h
+	sudo rm /usr/include/elfp/elfp_ds.h
 	sudo rmdir /usr/include/elfp
 	make clean
 

@@ -34,7 +34,7 @@
  * These won't be exposed to the programmer.
  */
 
-void
+static void
 elfp_dump_e64hdr(void *start_addr)
 {
 	Elf64_Ehdr *ehdr = start_addr;
@@ -105,7 +105,7 @@ elfp_dump_e64hdr(void *start_addr)
 	return;
 }
 
-void
+static void
 elfp_dump_e32hdr(void *start_addr)
 {
 	Elf32_Ehdr *ehdr = start_addr;
@@ -185,17 +185,16 @@ elfp_dump_e32hdr(void *start_addr)
 void*
 elfp_ehdr_get(int handle)
 {
-	int ret;
-	void *addr = NULL;
-	elfp_main *main = NULL;
-
 	/* First sanitize it */
-	ret = elfp_sanitize_handle(handle);
-	if(ret == -1)
+	if(elfp_sanitize_handle(handle) == -1)
 	{
 		elfp_err_warn("elfp_ehdr_get", "Handle failed sanity test");
 		return NULL;
 	}
+
+	int ret;
+	void *addr = NULL;
+	elfp_main *main = NULL;
 
 	main = elfp_main_vec_get_em(handle);
 	if(main == NULL)
@@ -286,6 +285,32 @@ elfp_ehdr_dump(int handle)
 	printf("==================================================\n");
 
 	return 0;
+}
+
+unsigned long int
+elfp_ehdr_class_get(int handle)
+{
+	if(elfp_sanitize_handle(handle) == -1)
+	{
+		elfp_err_warn("elfp_ehdr_class_get",
+				"Handle failed the sanity test");
+		return ELFCLASSNONE;
+	}
+
+	int ret;
+	elfp_main *main = NULL;
+	unsigned long int class;
+
+	main = elfp_main_vec_get_em(handle);
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_ehdr_class_get",
+				"elfp_main_vec_get_em() failed");
+		return ELFCLASSNONE;
+	}
+
+	class = elfp_main_get_class(main);
+	return class;
 }
 
 

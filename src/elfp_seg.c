@@ -33,7 +33,7 @@
  * The following functions are internal to the library.
  */
 
-int
+static int
 elfp_seg_get_type(const char *seg_name)
 {
 	/* All Valid entries first */
@@ -81,28 +81,33 @@ elfp_seg_get_type(const char *seg_name)
 	return -1;
 }
 
-/*
- * All functions related to elfp_seg_get()
- */
-
-void**
-elfp_seg64_get(int handle, Elf64_Phdr *pht, const char *seg_type, unsigned long int *ptr_count)
+static void**
+elfp_seg64_get(int handle, const char *seg_type, unsigned long int *ptr_count)
 {
 	/* No sanity checks */
 
         int ret;
         Elf64_Ehdr *ehdr = NULL;
         Elf64_Phdr *ph = NULL;
-        elfp_main *main = NULL;
+        Elf64_Phdr *pht = NULL;
+	elfp_main *main = NULL;
         void *start_addr = NULL;
         int phnum;
         int enc_seg_type;
         int i;
 	unsigned long int count, total;
 	void **ptr_arr = NULL;
-	elfp_free_addr_vector *free_vec = NULL;
+	elfp_ds_vector *free_vec = NULL;
 	void **temp = NULL;
 
+	/* Get the PHT */
+	pht = elfp_pht_get(handle);
+	if(pht == NULL)
+	{
+		elfp_err_warn("elfp_seg64_get", "elfp_pht_get() failed");
+		goto fail_err;
+	}
+		
 	/* Get the total number of program headers */    
         ehdr = elfp_ehdr_get(handle);    
         if(ehdr == NULL)    
@@ -241,11 +246,11 @@ elfp_seg64_get(int handle, Elf64_Phdr *pht, const char *seg_type, unsigned long 
 		goto fail_free;
 	}
 	
-	ret = elfp_free_addr_vector_add(free_vec, ptr_arr);
+	ret = elfp_ds_vector_add(free_vec, ptr_arr);
 	if(ret == -1)
 	{
 		elfp_err_warn("elfp_seg64_get",
-				"elfp_free_addr_vector_add() failed");
+				"elfp_ds_vector_add() failed");
 		goto fail_free;
 	}
 	
@@ -271,14 +276,15 @@ fail_err:
 }
 
 
-void**
-elfp_seg32_get(int handle, Elf32_Phdr *pht, const char *seg_type, unsigned long int *ptr_count)
+static void**
+elfp_seg32_get(int handle, const char *seg_type, unsigned long int *ptr_count)
 {
 	/* No sanity checks */
 
         int ret;
         Elf32_Ehdr *ehdr = NULL;
         Elf32_Phdr *ph = NULL;
+	Elf32_Phdr *pht = NULL;
         elfp_main *main = NULL;
         void *start_addr = NULL;
         int phnum;
@@ -286,8 +292,16 @@ elfp_seg32_get(int handle, Elf32_Phdr *pht, const char *seg_type, unsigned long 
         int i;
 	unsigned long int count, total;
 	void **ptr_arr = NULL;
-	elfp_free_addr_vector *free_vec = NULL;
+	elfp_ds_vector *free_vec = NULL;
 	void **temp = NULL;
+	
+	/* Get the PHT */
+	pht = elfp_pht_get(handle);
+	if(pht == NULL)
+	{
+		elfp_err_warn("elfp_seg32_get", "elfp_pht_get() failed");
+		goto fail_err;
+	}
 
 	/* Get the total number of program headers */    
         ehdr = elfp_ehdr_get(handle);    
@@ -426,11 +440,11 @@ elfp_seg32_get(int handle, Elf32_Phdr *pht, const char *seg_type, unsigned long 
 		goto fail_free;
 	}
 	
-	ret = elfp_free_addr_vector_add(free_vec, ptr_arr);
+	ret = elfp_ds_vector_add(free_vec, ptr_arr);
 	if(ret == -1)
 	{
 		elfp_err_warn("elfp_seg32_get",
-				"elfp_free_addr_vector_add() failed");
+				"elfp_ds_vector_add() failed");
 		goto fail_free;
 	}
 	
@@ -454,63 +468,9 @@ fail_err:
 	return NULL;
 }
 
-void**  
-elfp_seg_get(int handle, const char *seg_type, unsigned long int *ptr_count)
-{
-	/* Basic checks */
-	if(seg_type == NULL || ptr_count == NULL || 
-				elfp_sanitize_handle(handle) == -1)
-	{
-		elfp_err_warn("elfp_seg_get", "Invalid argument(s) passed");
-		goto fail_err;
-	}
 
-	int ret;
-	void **ptr_arr = NULL;
-	void *pht = NULL;
-	unsigned long int class;
 
-	/* Get the PHT */
-	pht = elfp_pht_get(handle, &class);
-        if(pht == NULL)
-        {
-                elfp_err_warn("elfp_seg_get", "elfp_pht_get() failed");
-		goto fail_err;
-        }
-
-        switch(class)
-        {
-                case ELFCLASS32:
-                        ptr_arr = elfp_seg32_get(handle, pht, seg_type, ptr_count);
-                        if(ptr_arr == NULL)
-                        {
-                                elfp_err_warn("elfp_seg_get", 
-				"elfp_seg32_get() failed / no segment of requested type found");           
-                        }
-			return ptr_arr;
-                
-                /* 64-bit ELF files and any other case is analyzed as 64-bit
-                 * ELF files */
-                default:
-                        ptr_arr = elfp_seg64_get(handle, pht, seg_type, ptr_count);
-                        if(ptr_arr == NULL)
-                        {
-                                elfp_err_warn("elfp_seg_get", 
-				"elfp_seg64_get() failed / no segment of requested type found");
-                        }
-			return ptr_arr;
-        }
-
-fail_err:
-	*ptr_count = 1;
-	return NULL;
-}
-
-/*
- * All functions related to elfp_seg_dump()
- */
-
-void
+static void
 elfp_seg_dump_interp(void **ptr_arr, unsigned long int ptr_count)
 {
 	int i;
@@ -520,7 +480,7 @@ elfp_seg_dump_interp(void **ptr_arr, unsigned long int ptr_count)
 	}
 }
 
-void
+static void
 elfp_seg_dump_gnu_stack(void **ptr_arr, unsigned long int ptr_count)
 {
 	int i;
@@ -534,8 +494,8 @@ elfp_seg_dump_gnu_stack(void **ptr_arr, unsigned long int ptr_count)
 }
 
 
-int
-elfp_seg32_dump(int handle, Elf32_Phdr *pht, const char *seg_type)
+static int
+elfp_seg32_dump(int handle, const char *seg_type)
 {
 	/* No need for basic checks because they are all sanitized inputs */
 	
@@ -546,7 +506,7 @@ elfp_seg32_dump(int handle, Elf32_Phdr *pht, const char *seg_type)
 
 	/* We have the elfp_seg64_get() function. Let us use it and quickly
 	 * get our segment pointer array */
-	ptr_arr = elfp_seg32_get(handle, pht, seg_type, &ptr_count);
+	ptr_arr = elfp_seg32_get(handle, seg_type, &ptr_count);
 	if(ptr_arr == NULL)
 	{
 		elfp_err_warn("elfp_seg32_dump", "elfp_seg32_get() failed");
@@ -589,8 +549,8 @@ elfp_seg32_dump(int handle, Elf32_Phdr *pht, const char *seg_type)
 	}
 }
 
-int
-elfp_seg64_dump(int handle, Elf64_Phdr *pht, const char *seg_type)
+static int
+elfp_seg64_dump(int handle, const char *seg_type)
 {
 	/* No need for basic checks because they are all sanitized inputs */
 	
@@ -601,7 +561,7 @@ elfp_seg64_dump(int handle, Elf64_Phdr *pht, const char *seg_type)
 
 	/* We have the elfp_seg64_get() function. Let us use it and quickly
 	 * get our segment pointer array */
-	ptr_arr = elfp_seg64_get(handle, pht, seg_type, &ptr_count);
+	ptr_arr = elfp_seg64_get(handle, seg_type, &ptr_count);
 	if(ptr_arr == NULL)
 	{
 		elfp_err_warn("elfp_seg64_dump", "elfp_seg64_get() failed");
@@ -648,6 +608,61 @@ elfp_seg64_dump(int handle, Elf64_Phdr *pht, const char *seg_type)
  * The following functions are exposed API.
  */
 
+void** 
+elfp_seg_get(int handle, const char *seg_type, unsigned long int *ptr_count)
+{
+	/* Basic checks */
+	if(seg_type == NULL || ptr_count == NULL || 
+				elfp_sanitize_handle(handle) == -1)
+	{
+		elfp_err_warn("elfp_seg_get", "Invalid argument(s) passed");
+		goto fail_err;
+	}
+
+	int ret;
+	void **ptr_arr = NULL;
+	elfp_main *main = NULL;
+	unsigned long int class;
+
+	/* Get the class */
+	main = elfp_main_vec_get_em(handle);
+	if(main == NULL)
+	{
+		elfp_err_warn("elfp_seg_get",
+			"elfp_main_vec_get_em() failed");
+		goto fail_err;
+	}
+
+	class = elfp_main_get_class(main);
+
+        switch(class)
+        {
+                case ELFCLASS32:
+                        ptr_arr = elfp_seg32_get(handle, seg_type, ptr_count);
+                        if(ptr_arr == NULL)
+                        {
+                                elfp_err_warn("elfp_seg_get", 
+				"elfp_seg32_get() failed / no segment of requested type found");           
+                        }
+			return ptr_arr;
+                
+                /* 64-bit ELF files and any other case is analyzed as 64-bit
+                 * ELF files */
+                default:
+                        ptr_arr = elfp_seg64_get(handle, seg_type, ptr_count);
+                        if(ptr_arr == NULL)
+                        {
+                                elfp_err_warn("elfp_seg_get", 
+				"elfp_seg64_get() failed / no segment of requested type found");
+                        }
+			return ptr_arr;
+        }
+
+fail_err:
+	*ptr_count = 1;
+	return NULL;
+}
+
 int
 elfp_seg_dump(int handle, const char *seg_type)
 {
@@ -659,22 +674,24 @@ elfp_seg_dump(int handle, const char *seg_type)
 	}
 
 	int ret;
-	void *pht;
+	elfp_main *main = NULL;
 	unsigned long int class;
 
-
-	/* Get the pointer to the PHT */
-	pht = elfp_pht_get(handle, &class);
-	if(pht == NULL)
+	/* Get the class */
+	main = elfp_main_vec_get_em(handle);
+	if(main == NULL)
 	{
-		elfp_err_warn("elfp_seg_dump", "elfp_pht_get() failed");
+		elfp_err_warn("elfp_seg_dump",
+			"elfp_main_vec_get_em() failed");
 		return -1;
 	}
+	
+	class = elfp_main_get_class(main);
 
 	switch(class)
 	{
 		case ELFCLASS32:
-			ret = elfp_seg32_dump(handle, pht, seg_type);
+			ret = elfp_seg32_dump(handle, seg_type);
 			if(ret == -1)
 			{
 				elfp_err_warn("elfp_seg_dump", "elfp_seg32_dump() failed");
@@ -685,7 +702,7 @@ elfp_seg_dump(int handle, const char *seg_type)
 		/* 64-bit ELF files and any other case is analyzed as 64-bit
 		 * ELF files */
 		default:
-			ret = elfp_seg64_dump(handle, pht, seg_type);
+			ret = elfp_seg64_dump(handle, seg_type);
 			if(ret == -1)
 			{
 				elfp_err_warn("elfp_seg_dump", "elfp_seg64_dump() failed");

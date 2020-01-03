@@ -23,6 +23,7 @@
 
 #include "./include/elfp_err.h"
 #include "./include/elfp_int.h"
+#include "./include/elfp_ds.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -32,103 +33,6 @@
 #include <unistd.h>
 #include <elf.h>
 #include <sys/mman.h>
-
-/*
- * All definitions related to elfp_free_addr_vector structure.
- *
- * Refer to elfp_int.h for structure definition and function description.
- */
-
-int
-elfp_free_addr_vector_init(elfp_free_addr_vector *vec)
-{
-	/* Basic check */
-	if(vec == NULL)
-	{
-		elfp_err_warn("elfp_free_addr_vector_init", "NULL argument passed");
-        	return -1;
-    	}     
-
-    	/* Total number of addresses it can hold at first is 1000 */
-    	vec->total = ELFP_FREE_ADDR_VECTOR_INIT_SIZE;
-
-	/* Allocate the same amount of memory */
-	vec->addrs = calloc(vec->total, sizeof(void *));
-	if(vec->addrs == NULL)
-	{
-		elfp_err_warn("elfp_free_addr_vector_init", "calloc() failed");
-		return -1;
-	}
-	
-	/* Init the count */
-	vec->count = 0;
-
-	/* Good to go! */
-	return 0;
-}
-
-void
-elfp_free_addr_vector_fini(elfp_free_addr_vector *vec)
-{
-	/* Basic check */
-	if(vec == NULL)
-	{
-		elfp_err_warn("elfp_free_addr_vector_fini", "NULL argument passed");
-		return;
-	}
-
-	/* First, free up all the stored addresses */
-	for(unsigned long i = 0; i < vec->count; i++)
-		free(vec->addrs[i]);
-
-	/* Now, free up addrs */
-	free(vec->addrs);
-	
-	/* All set */
-	return;
-}
-
-int
-elfp_free_addr_vector_add(elfp_free_addr_vector *vec, void *addr)
-{
-	/* Basic check */
-	if(vec == NULL || addr == NULL)
-	{
-		elfp_err_warn("elfp_free_addr_vector_add", 
-				"NULL argument(s) passed");
-		return -1;
-	}
-	
-	void *new_addr = NULL;
-
-	/* Check if the vector is full */
-	if(vec->count == vec->total)
-	{
-		/* Allocate more memory */
-		new_addr = realloc(vec->addrs, 
-			(vec->total + ELFP_FREE_ADDR_VECTOR_INIT_SIZE) * sizeof(void *));
-		if(new_addr == NULL)
-		{
-			elfp_err_warn("elfp_free_addr_vector_add",
-					"realloc() failed");
-			return -1;
-		}
-		
-		/* Initialize the new memory */
-		memset(((char *)new_addr) + vec->total * sizeof(void *), '\0', 
-				ELFP_FREE_ADDR_VECTOR_INIT_SIZE * sizeof(void *));
-
-		vec->addrs = new_addr;
-		vec->total = vec->total + ELFP_FREE_ADDR_VECTOR_INIT_SIZE;
-	}
-
-	/* Now, put the address into the list */
-	vec->addrs[vec->count] = addr;
-	vec->count = vec->count + 1;
-
-	/* Good to go! */
-	return 0;
-}
 
 /*
  * All definitions related to elfp_main structure.
@@ -238,11 +142,11 @@ elfp_main_create(const char *file_path)
 	/* 
 	 * 6. Initialize the free list *
 	 */
-	ret = elfp_free_addr_vector_init(&main->free_vec);
+	ret = elfp_ds_vector_init(&main->free_vec);
 	if(ret != 0)
 	{
 		elfp_err_warn("elfp_main_create",
-				"elfp_free_addr_vector_init() failed");
+				"elfp_ds_vector_init() failed");
 
 		goto return_munmap;
 	}
@@ -306,7 +210,7 @@ elfp_main_fini(elfp_main *main)
 	close(main->fd);
 
 	/* De-init the free vector */
-	elfp_free_addr_vector_fini(&main->free_vec); 
+	elfp_ds_vector_fini(&main->free_vec); 
 
 	/* Now that we have cleaned up everything inside the object,
 	 * it is time to clean the object itself */
@@ -375,7 +279,7 @@ elfp_main_get_handle(elfp_main *main)
 	return main->handle;
 }
 
-elfp_free_addr_vector*
+elfp_ds_vector*
 elfp_main_get_freevec(elfp_main *main)
 {
 	/* Basic check */
@@ -498,11 +402,8 @@ elfp_main_vec_fini()
 void
 elfp_main_vec_inform(int handle)
 {	
-	int ret;
-	
 	/* Sanity check */
-	ret = elfp_sanitize_handle(handle);
-	if(ret == -1)
+	if(elfp_sanitize_handle(handle) == -1)
 	{
 		elfp_err_warn("elfp_main_vec_inform", "Handle failed sanity test");
 		return;
